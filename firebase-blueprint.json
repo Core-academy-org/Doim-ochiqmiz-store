@@ -1,0 +1,73 @@
+{
+  "entities": {
+    "products": {
+      "title": "products",
+      "description": "Products available in store branches",
+      "properties": {
+        "name": { "type": "string" },
+        "price": { "type": "number" },
+        "quantity": { "type": "number" },
+        "branchId": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "reactions": { "type": "object" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["name", "price", "quantity"]
+    },
+    "branches": {
+      "title": "branches",
+      "description": "Store branches / filials",
+      "properties": {
+        "name": { "type": "string" },
+        "address": { "type": "string" },
+        "phone": { "type": "string" },
+        "lat": { "type": "number" },
+        "lng": { "type": "number" },
+        "mapUrl": { "type": "string" },
+        "workingHours": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["name"]
+    },
+    "siteSettings": {
+      "title": "siteSettings",
+      "description": "Dynamic text configuration for headers, contacts, and titles",
+      "properties": {
+        "siteTitle": { "type": "string" },
+        "siteDescription": { "type": "string" },
+        "contactPhone": { "type": "string" },
+        "heroTitle": { "type": "string" },
+        "heroSubtitle": { "type": "string" },
+        "workingHoursNotice": { "type": "string" }
+      }
+    },
+    "news": {
+      "title": "news",
+      "description": "Announcements and updates",
+      "properties": {
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["title", "content"]
+    },
+    "chats": {
+      "title": "chats",
+      "description": "Customer live support chats",
+      "properties": {
+        "customerName": { "type": "string" },
+        "customerPhone": { "type": "string" },
+        "contactReason": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "lastUpdated": { "type": "string" },
+        "lastMessage": { "type": "string" },
+        "unreadByAdmin": { "type": "boolean" },
+        "status": { "type": "string" }
+      },
+      "required": ["customerName", "customerPhone", "contactReason"]
+    }
+  }
+}

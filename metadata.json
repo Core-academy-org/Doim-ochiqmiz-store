@@ -1,0 +1,6 @@
+{
+  "name": "Doim ochiqmiz",
+  "description": "Real-time product availability and price checking platform across store branches",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
