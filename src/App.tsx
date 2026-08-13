@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { db, firebaseConfigured, collection, doc, onSnapshot, query, orderBy, setDoc, addDoc } from './lib/firebase';
+import { db, collection, doc, onSnapshot, query, orderBy, setDoc, addDoc } from './lib/firebase';
 import { Product, Branch, SiteSettings, NewsItem, ChatSession } from './types';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
@@ -14,6 +14,7 @@ import { ProductDetailModal } from './components/ProductDetailModal';
 import { BranchList } from './components/BranchList';
 import { NewsSection } from './components/NewsSection';
 import { CustomerChatWidget } from './components/CustomerChatWidget';
+import { MobileBottomNav } from './components/MobileBottomNav';
 import { AdminLoginModal } from './components/admin/AdminLoginModal';
 import { AdminPanel } from './components/admin/AdminPanel';
 import { soundFx } from './lib/sound';
@@ -72,11 +73,6 @@ export default function App() {
 
   // 1. Subscribe to Firestore Real-time Collections
   useEffect(() => {
-    if (!firebaseConfigured) {
-      console.warn('Firebase is not configured. Rendering the site with local default content.');
-      return;
-    }
-
     // Products
     const qProducts = query(collection(db, 'products'));
     const unsubProducts = onSnapshot(qProducts, (snapshot) => {
@@ -159,23 +155,33 @@ export default function App() {
       if (selectedBranchId !== 'all' && p.branchId !== selectedBranchId) {
         return false;
       }
-      // Search query
-      if (searchQuery.trim() && !p.name.toLowerCase().includes(searchQuery.toLowerCase().trim())) {
-        return false;
+      // Search query (search in name, category, and description)
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const nameMatch = p.name.toLowerCase().includes(q);
+        const catMatch = (p.category || '').toLowerCase().includes(q);
+        const descMatch = (p.description || '').toLowerCase().includes(q);
+        if (!nameMatch && !catMatch && !descMatch) {
+          return false;
+        }
       }
-      // Category filter (support flexible category matching)
+      // Category filter (exact, substring, or semantic match)
       if (selectedCategory !== 'all') {
-        const catSelected = selectedCategory.toLowerCase();
-        const pCat = (p.category || '').toLowerCase();
+        const catSelected = selectedCategory.toLowerCase().trim();
+        const pCat = (p.category || '').toLowerCase().trim();
         
-        const isMatch = pCat === catSelected ||
-          (catSelected.includes('meva') && (pCat.includes('meva') || pCat.includes('sabzavot') || pCat.includes('fruit'))) ||
-          (catSelected.includes('sport') && (pCat.includes('sport') || pCat.includes('mashq'))) ||
-          (catSelected.includes('oshxona') && (pCat.includes('oshxona') || pCat.includes('pichoq') || pCat.includes('tova') || pCat.includes('kitchen'))) ||
-          (catSelected.includes('ichimlik') && (pCat.includes('ichimlik') || pCat.includes('sut') || pCat.includes('drink'))) ||
-          (catSelected.includes('elektronika') && (pCat.includes('elektronika') || pCat.includes('ro\'zg\'or') || pCat.includes('maishiy')));
+        const isExact = pCat === catSelected;
+        const isSubstring = pCat.includes(catSelected) || catSelected.includes(pCat);
+        const isSemantic =
+          (catSelected.includes('meva') && (pCat.includes('meva') || pCat.includes('sabzavot') || pCat.includes('fruit') || pCat.includes('овощ') || pCat.includes('фрукт'))) ||
+          (catSelected.includes('sport') && (pCat.includes('sport') || pCat.includes('mashq') || pCat.includes('спорт'))) ||
+          (catSelected.includes('oshxona') && (pCat.includes('oshxona') || pCat.includes('pichoq') || pCat.includes('tova') || pCat.includes('kitchen') || pCat.includes('посуда') || pCat.includes('кухон'))) ||
+          (catSelected.includes('ichimlik') && (pCat.includes('ichimlik') || pCat.includes('sut') || pCat.includes('drink') || pCat.includes('sok') || pCat.includes('напитки'))) ||
+          (catSelected.includes('elektronika') && (pCat.includes('elektronika') || pCat.includes('ro\'zg\'or') || pCat.includes('maishiy') || pCat.includes('быт')));
 
-        if (!isMatch) return false;
+        if (!isExact && !isSubstring && !isSemantic) {
+          return false;
+        }
       }
       // Stock status filter
       if (stockFilter === 'instock' && p.quantity <= 0) {
@@ -322,7 +328,7 @@ export default function App() {
       />
 
       {/* Main View Router */}
-      <main className="flex-1">
+      <main className="flex-1 pb-16 md:pb-0">
         {activeTab === 'products' && (
           <div className="space-y-8 pb-16">
             {/* Dynamic Hero Section */}
@@ -466,6 +472,15 @@ export default function App() {
         t={t}
       />
 
+      {/* Mobile Bottom Navigation Bar */}
+      <MobileBottomNav
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        branchesCount={branches.length}
+        newsCount={newsList.length}
+        t={t}
+      />
+
       {/* Admin Security Login Modal */}
       <AdminLoginModal
         isOpen={isAdminLoginOpen}
@@ -501,3 +516,4 @@ export default function App() {
     </div>
   );
 }
+

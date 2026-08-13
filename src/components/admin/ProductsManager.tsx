@@ -16,7 +16,8 @@ import {
   Link as LinkIcon, 
   Layers,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  AlertTriangle
 } from 'lucide-react';
 
 interface ProductsManagerProps {
@@ -27,6 +28,8 @@ interface ProductsManagerProps {
 export const ProductsManager: React.FC<ProductsManagerProps> = ({ products, branches }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Form State
   const [name, setName] = useState('');
@@ -50,6 +53,13 @@ export const ProductsManager: React.FC<ProductsManagerProps> = ({ products, bran
     { label: 'Non & Yopgan', url: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=600&q=80' },
     { label: 'Sharbat', url: 'https://images.unsplash.com/photo-1600271886742-f049cd451bba?auto=format&fit=crop&w=600&q=80' }
   ];
+
+  // Ensure branchId defaults to the first available branch
+  React.useEffect(() => {
+    if (!branchId && branches.length > 0) {
+      setBranchId(branches[0].id);
+    }
+  }, [branches, branchId]);
 
   const resetForm = () => {
     setName('');
@@ -203,14 +213,23 @@ export const ProductsManager: React.FC<ProductsManagerProps> = ({ products, bran
     }
   };
 
-  const handleDelete = async (productId: string) => {
-    if (!confirm("Haqiqatan ham ushbu mahsulotni o'chirib tashlamoqchimisiz?")) return;
+  const handlePromptDelete = (product: Product) => {
+    soundFx.playClick('click');
+    setProductToDelete(product);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!productToDelete) return;
+    setIsDeleting(true);
     soundFx.playClick('pop');
 
     try {
-      await deleteDoc(doc(db, 'products', productId));
+      await deleteDoc(doc(db, 'products', productToDelete.id));
+      setProductToDelete(null);
     } catch (err) {
       console.error("Error deleting product:", err);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -617,8 +636,8 @@ export const ProductsManager: React.FC<ProductsManagerProps> = ({ products, bran
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => handleDelete(p.id)}
-                          className="p-2 bg-slate-100 hover:bg-rose-100 text-slate-700 hover:text-rose-700 rounded-xl transition-colors"
+                          onClick={() => handlePromptDelete(p)}
+                          className="p-2 bg-slate-100 hover:bg-rose-100 text-slate-700 hover:text-rose-700 rounded-xl transition-colors cursor-pointer"
                           title="O'chirish"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -632,6 +651,48 @@ export const ProductsManager: React.FC<ProductsManagerProps> = ({ products, bran
           </div>
         )}
       </div>
+
+      {/* Double Confirmation Modal for Product Deletion */}
+      {productToDelete && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-rose-100 space-y-5 animate-in zoom-in-95 duration-200">
+            <div className="w-14 h-14 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto border border-rose-200 shadow-inner">
+              <AlertTriangle className="w-7 h-7" />
+            </div>
+
+            <div className="text-center space-y-2">
+              <h3 className="font-extrabold text-slate-800 text-lg">
+                Mahsulotni O'chirishni Tasdiqlang
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Siz <span className="font-bold text-slate-900 underline decoration-rose-400">«{productToDelete.name}»</span> mahsulotini tizimdan butunlay o'chirib tashlamoqchisiz.
+              </p>
+              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-[11px] text-rose-700 font-medium">
+                ⚠️ Ogohlantirish: Ushbu amalni ortga qaytarib bo'lmaydi va ushbu mahsulot xaridorlar katalogidan o'chiriladi!
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setProductToDelete(null)}
+                disabled={isDeleting}
+                className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+              >
+                Bekor qilish
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+                className="flex-1 py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 hover:scale-[1.02]"
+              >
+                {isDeleting ? "O'chirilmoqda..." : "Roziman, O'chirilsin"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

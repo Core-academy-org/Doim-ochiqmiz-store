@@ -65,8 +65,8 @@ export const Logo: React.FC<LogoProps> = ({ className = "h-12", showText = true 
               Doim <span className="text-emerald-600 underline decoration-amber-400 decoration-2 underline-offset-2">ochiqmiz</span>
             </span>
           </div>
-          <span className="text-[11px] font-medium text-emerald-700/80 tracking-wide uppercase">
-            Jonli Mahsulot & Baha Portal
+          <span className="text-[11px] font-bold text-emerald-700/80 tracking-wide uppercase">
+            Jonli Kuzatuv
           </span>
         </div>
       )}
