@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { db, collection, doc, onSnapshot, query, orderBy, setDoc, addDoc } from './lib/firebase';
+import { db, firebaseConfigured, collection, doc, onSnapshot, query, orderBy, setDoc, addDoc } from './lib/firebase';
 import { Product, Branch, SiteSettings, NewsItem, ChatSession } from './types';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
@@ -72,6 +72,11 @@ export default function App() {
 
   // 1. Subscribe to Firestore Real-time Collections
   useEffect(() => {
+    if (!firebaseConfigured) {
+      console.warn('Firebase is not configured. Rendering the site with local default content.');
+      return;
+    }
+
     // Products
     const qProducts = query(collection(db, 'products'));
     const unsubProducts = onSnapshot(qProducts, (snapshot) => {
@@ -496,4 +501,3 @@ export default function App() {
     </div>
   );
 }
-
