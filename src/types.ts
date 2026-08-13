@@ -32,6 +32,9 @@ export interface SiteSettings {
   heroNotice: string;
   workingHoursNotice: string;
   headerTagline: string;
+  mainStoreMapUrl?: string;
+  mainStoreBranchName?: string;
+  mainStoreAddress?: string;
 }
 
 export interface NewsItem {

@@ -18,29 +18,31 @@ import {
   serverTimestamp,
   Timestamp
 } from 'firebase/firestore';
-import defaultConfig from '../../firebase-applet-config.json';
+import defaultFirebaseConfig from '../../firebase-applet-config.json';
 
-const activeConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || defaultConfig?.apiKey || "demo-key",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || defaultConfig?.authDomain || "demo.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || defaultConfig?.projectId || "demo-project",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || defaultConfig?.storageBucket || "demo.appspot.com",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || defaultConfig?.messagingSenderId || "000000000000",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || defaultConfig?.appId || "1:000000000000:web:0000000000000000000000",
-  firestoreDatabaseId: import.meta.env.VITE_FIREBASE_DATABASE_ID || defaultConfig?.firestoreDatabaseId || "(default)"
+// Build resolved Firebase configuration from env vars or static json config
+const env = (import.meta as any).env || {};
+const firebaseConfig = {
+  projectId: env.VITE_FIREBASE_PROJECT_ID || defaultFirebaseConfig.projectId || "dauntless-triode-djkjx",
+  appId: env.VITE_FIREBASE_APP_ID || defaultFirebaseConfig.appId || "1:894594625052:web:73a9f357e9dd1c26a3f9d9",
+  apiKey: env.VITE_FIREBASE_API_KEY || defaultFirebaseConfig.apiKey || "AIzaSyD4gmwlRIYVEvmWXOBDOgHFr5pD_mzLriY",
+  authDomain: env.VITE_FIREBASE_AUTH_DOMAIN || defaultFirebaseConfig.authDomain || "dauntless-triode-djkjx.firebaseapp.com",
+  firestoreDatabaseId: env.VITE_FIREBASE_DATABASE_ID || defaultFirebaseConfig.firestoreDatabaseId || "ai-studio-5462523f-87ae-4687-bef3-034cd3df0c9e",
+  storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET || defaultFirebaseConfig.storageBucket || "dauntless-triode-djkjx.firebasestorage.app",
+  messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID || defaultFirebaseConfig.messagingSenderId || "894594625052"
 };
 
-// Safely initialize Firebase App
+// Initialize Firebase safely
 let app;
 try {
-  app = getApps().length > 0 ? getApp() : initializeApp(activeConfig);
-} catch (error) {
-  console.warn("Firebase app initialization fallback:", error);
-  app = getApps().length > 0 ? getApp() : initializeApp({ projectId: "demo-project" });
+  app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+} catch (err) {
+  console.warn("Firebase initialization error, using existing app instance if available:", err);
+  app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 }
 
-// Safely initialize Firestore with fallback support
-const databaseId = activeConfig.firestoreDatabaseId || '(default)';
+// Initialize Firestore with custom database ID and auto-detect long polling for container / proxy network stability
+const databaseId = firebaseConfig.firestoreDatabaseId || '(default)';
 let db;
 try {
   db = initializeFirestore(
@@ -50,13 +52,8 @@ try {
     },
     databaseId
   );
-} catch (error) {
-  console.warn("Custom Firestore initialization failed, attempting standard getFirestore:", error);
-  try {
-    db = getFirestore(app);
-  } catch (err) {
-    console.error("Firestore unavailable:", err);
-  }
+} catch (err) {
+  db = getFirestore(app, databaseId);
 }
 
 export { 

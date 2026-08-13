@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { SiteSettings } from '../../types';
 import { db, doc, setDoc } from '../../lib/firebase';
 import { soundFx } from '../../lib/sound';
-import { Type, Save, CheckCircle, Phone, Clock, FileText, Sparkles } from 'lucide-react';
+import { MAIN_STORE_GOOGLE_MAP_URL } from '../../lib/i18n';
+import { Type, Save, CheckCircle, Phone, Clock, FileText, Sparkles, MapPin, Navigation, Store } from 'lucide-react';
 
 interface DynamicTextManagerProps {
   settings: SiteSettings;
@@ -15,6 +16,9 @@ export const DynamicTextManager: React.FC<DynamicTextManagerProps> = ({ settings
   const [heroNotice, setHeroNotice] = useState(settings.heroNotice || "Do'konga kelishdan oldin narx va mavjudlikni ko'ring");
   const [workingHoursNotice, setWorkingHoursNotice] = useState(settings.workingHoursNotice || 'Har kuni 08:00 - 22:00');
   const [headerTagline, setHeaderTagline] = useState(settings.headerTagline || "Filiallar real vaqt ombor tizimi");
+  const [mainStoreMapUrl, setMainStoreMapUrl] = useState(settings.mainStoreMapUrl || MAIN_STORE_GOOGLE_MAP_URL);
+  const [mainStoreBranchName, setMainStoreBranchName] = useState(settings.mainStoreBranchName || 'Bosh Filial (Markaziy Do\'kon)');
+  const [mainStoreAddress, setMainStoreAddress] = useState(settings.mainStoreAddress || 'Toshkent sh., Chilonzor tumani, 9-mavze, 12-uy');
 
   const [savedSuccess, setSavedSuccess] = useState(false);
 
@@ -25,6 +29,9 @@ export const DynamicTextManager: React.FC<DynamicTextManagerProps> = ({ settings
     setHeroNotice(settings.heroNotice || "Do'konga kelishdan oldin narx va mavjudlikni ko'ring");
     setWorkingHoursNotice(settings.workingHoursNotice || 'Har kuni 08:00 - 22:00');
     setHeaderTagline(settings.headerTagline || "Filiallar real vaqt ombor tizimi");
+    setMainStoreMapUrl(settings.mainStoreMapUrl || MAIN_STORE_GOOGLE_MAP_URL);
+    setMainStoreBranchName(settings.mainStoreBranchName || 'Bosh Filial (Markaziy Do\'kon)');
+    setMainStoreAddress(settings.mainStoreAddress || 'Toshkent sh., Chilonzor tumani, 9-mavze, 12-uy');
   }, [settings]);
 
   const handleSave = async (e: React.FormEvent) => {
@@ -37,7 +44,10 @@ export const DynamicTextManager: React.FC<DynamicTextManagerProps> = ({ settings
       contactPhone,
       heroNotice,
       workingHoursNotice,
-      headerTagline
+      headerTagline,
+      mainStoreMapUrl,
+      mainStoreBranchName,
+      mainStoreAddress
     };
 
     try {
@@ -134,6 +144,54 @@ export const DynamicTextManager: React.FC<DynamicTextManagerProps> = ({ settings
               onChange={(e) => setHeaderTagline(e.target.value)}
               className="w-full px-3.5 py-2.5 text-xs border rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
             />
+          </div>
+
+          <div className="md:col-span-2 pt-3 border-t border-slate-100">
+            <h4 className="font-extrabold text-slate-800 text-sm mb-3 flex items-center gap-2">
+              <Navigation className="w-4 h-4 text-sky-600" />
+              Asosiy Do'kon Google Maps va Manzil Sozlamalari
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-sky-50/50 p-4 rounded-2xl border border-sky-100">
+              <div className="md:col-span-2">
+                <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1">
+                  <Navigation className="w-3.5 h-3.5 text-emerald-600" /> Google Maps Link (Xarita Havolasi):
+                </label>
+                <input
+                  type="url"
+                  required
+                  placeholder="https://maps.app.goo.gl/..."
+                  value={mainStoreMapUrl}
+                  onChange={(e) => setMainStoreMapUrl(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-xs border rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none font-mono text-slate-800 bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1">
+                  <Store className="w-3.5 h-3.5 text-amber-600" /> Asosiy Do'kon Nomi:
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={mainStoreBranchName}
+                  onChange={(e) => setMainStoreBranchName(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-xs border rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5 text-rose-600" /> Asosiy Do'kon Manzili:
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={mainStoreAddress}
+                  onChange={(e) => setMainStoreAddress(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-xs border rounded-xl focus:ring-2 focus:ring-rose-500 focus:outline-none bg-white"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="md:col-span-2">

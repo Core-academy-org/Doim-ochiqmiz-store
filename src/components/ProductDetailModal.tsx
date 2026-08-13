@@ -69,11 +69,16 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
         <div className="overflow-y-auto p-6 space-y-6">
           {/* Header Image Gallery Carousel */}
           <div className="space-y-3">
-            <div className="relative aspect-16/9 w-full bg-slate-100 rounded-2xl overflow-hidden group">
+            <div className="relative aspect-16/10 sm:aspect-16/9 w-full bg-slate-100/90 rounded-2xl overflow-hidden group flex items-center justify-center p-2">
+              <img
+                src={currentImageUrl}
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover blur-md opacity-20 scale-110 pointer-events-none"
+              />
               <img
                 src={currentImageUrl}
                 alt={product.name}
-                className="w-full h-full object-cover transition-all duration-300"
+                className="relative z-1 w-full h-full object-contain transition-all duration-300 drop-shadow-md"
               />
 
               {/* Status Badge */}

@@ -62,14 +62,26 @@ export const NewsManager: React.FC<NewsManagerProps> = ({ newsList }) => {
     }
   };
 
-  const handleDelete = async (newsId: string) => {
-    if (!confirm("Haqiqatan ham ushbu yangilikni o'chirmoqchimisiz?")) return;
+  const [newsToDelete, setNewsToDelete] = useState<NewsItem | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handlePromptDelete = (n: NewsItem) => {
+    soundFx.playClick('click');
+    setNewsToDelete(n);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!newsToDelete) return;
+    setIsDeleting(true);
     soundFx.playClick('pop');
 
     try {
-      await deleteDoc(doc(db, 'news', newsId));
+      await deleteDoc(doc(db, 'news', newsToDelete.id));
+      setNewsToDelete(null);
     } catch (err) {
       console.error("Error deleting news:", err);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -214,8 +226,8 @@ export const NewsManager: React.FC<NewsManagerProps> = ({ newsList }) => {
                   <Edit2 className="w-3.5 h-3.5" />
                 </button>
                 <button
-                  onClick={() => handleDelete(n.id)}
-                  className="p-1.5 bg-slate-100 hover:bg-rose-100 text-slate-700 hover:text-rose-700 rounded-lg"
+                  onClick={() => handlePromptDelete(n)}
+                  className="p-1.5 bg-slate-100 hover:bg-rose-100 text-slate-700 hover:text-rose-700 rounded-lg cursor-pointer transition-colors"
                   title="O'chirish"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -225,6 +237,45 @@ export const NewsManager: React.FC<NewsManagerProps> = ({ newsList }) => {
           ))
         )}
       </div>
+
+      {/* Delete Confirmation Modal Overlay */}
+      {newsToDelete && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full border border-slate-100 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3 text-rose-600">
+              <div className="p-3 bg-rose-50 rounded-2xl">
+                <Trash2 className="w-6 h-6" />
+              </div>
+              <h4 className="font-extrabold text-slate-800 text-lg">
+                Yangilikni O'chirish
+              </h4>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Haqiqatan ham <strong className="text-slate-800">{newsToDelete.title}</strong> e'lonini o'chirib tashlamoqchimisiz?
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => setNewsToDelete(null)}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer"
+              >
+                Bekor qilish
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={handleConfirmDelete}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md cursor-pointer"
+              >
+                {isDeleting ? "O'chirilmoqda..." : "Ha, O'chirilsin"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

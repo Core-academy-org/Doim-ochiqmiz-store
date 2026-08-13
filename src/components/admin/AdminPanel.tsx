@@ -294,7 +294,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           )}
 
           {activeAdminTab === 'branches' && (
-            <BranchesManager branches={branches} />
+            <BranchesManager branches={branches} settings={settings} />
           )}
 
           {activeAdminTab === 'text' && (

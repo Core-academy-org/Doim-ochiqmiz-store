@@ -65,12 +65,19 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       className="group bg-white rounded-3xl border border-emerald-100/80 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden cursor-pointer relative hover:-translate-y-1"
     >
       {/* Product Image Container */}
-      <div className="relative aspect-4/3 w-full bg-slate-50 overflow-hidden">
+      <div className="relative aspect-4/3 w-full bg-slate-100/90 overflow-hidden flex items-center justify-center p-2">
+        {/* Soft Background Blurred Layer for Aesthetics */}
+        <img
+          src={imageError ? fallbackImage : mainImage}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover blur-md opacity-25 scale-110 pointer-events-none"
+        />
+        {/* Main Product Image - Full Uncropped View */}
         <img
           src={imageError ? fallbackImage : mainImage}
           alt={product.name}
           onError={() => setImageError(true)}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          className="relative z-1 w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 drop-shadow-sm"
         />
 
         {/* Multi-Picture Indicator Badge */}

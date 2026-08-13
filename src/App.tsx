@@ -216,96 +216,6 @@ export default function App() {
     setIsAdminPanelOpen(true);
   };
 
-  // Seed sample initial data with fruits, sports, kitchen tools, drinks, electronics
-  const handleSeedInitialData = async () => {
-    soundFx.playClick('chime');
-    try {
-      // Seed Branches
-      const branch1 = await addDoc(collection(db, 'branches'), {
-        name: 'Chilonzor Filiali',
-        address: 'Toshkent sh., Chilonzor tumani, 9-mavze, 12-uy',
-        phone: '+998 90 123 45 67',
-        lat: 41.2783,
-        lng: 69.2081,
-        workingHours: '08:00 - 22:00',
-        createdAt: new Date().toISOString()
-      });
-
-      const branch2 = await addDoc(collection(db, 'branches'), {
-        name: 'Yunusobod Filiali',
-        address: 'Toshkent sh., Yunusobod tumani, 4-mavze, 8-uy',
-        phone: '+998 91 765 43 21',
-        lat: 41.3652,
-        lng: 69.2894,
-        workingHours: '08:00 - 23:00',
-        createdAt: new Date().toISOString()
-      });
-
-      // Seed Fruits & Veg
-      await addDoc(collection(db, 'products'), {
-        name: 'Namangan Shirin Qizil Olma (1 kg)',
-        price: 18000,
-        quantity: 45,
-        branchId: branch1.id,
-        imageUrl: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&w=600&q=80',
-        category: 'Mevalar & Sabzavotlar',
-        description: 'Taza terilgan sarxil Namangan shirin olmasi.',
-        reactions: { '❤️': 12, '👍': 18, '🔥': 25 },
-        createdAt: new Date().toISOString()
-      });
-
-      // Seed Sports
-      await addDoc(collection(db, 'products'), {
-        name: 'Professional Futbol Koptogi (Nike Pitch)',
-        price: 185000,
-        quantity: 14,
-        branchId: branch1.id,
-        imageUrl: 'https://images.unsplash.com/photo-1614632537190-23e4146777db?auto=format&fit=crop&w=600&q=80',
-        category: 'Sport tovarlari',
-        description: 'Chidamli charm futbol koptogi. Universal foydalanish uchun.',
-        reactions: { '❤️': 19, '👍': 24, '🔥': 32 },
-        createdAt: new Date().toISOString()
-      });
-
-      // Seed Kitchen Tools
-      await addDoc(collection(db, 'products'), {
-        name: 'Granit Yopishmaydigan Tova 28sm (Tefal style)',
-        price: 240000,
-        quantity: 8,
-        branchId: branch2.id,
-        imageUrl: 'https://images.unsplash.com/photo-1584992236310-6edddc08acff?auto=format&fit=crop&w=600&q=80',
-        category: 'Oshxona jihozlari',
-        description: 'Qalin granit qoplamali va yog\'siz qovurish imkoniga ega premium oshxona tovasi.',
-        reactions: { '❤️': 30, '👍': 42, '🔥': 18 },
-        createdAt: new Date().toISOString()
-      });
-
-      // Seed Drinks & Dairy
-      await addDoc(collection(db, 'products'), {
-        name: 'Taza Sut "Musaffo" 3.2% (1 L)',
-        price: 14000,
-        quantity: 20,
-        branchId: branch2.id,
-        imageUrl: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?auto=format&fit=crop&w=600&q=80',
-        category: 'Ichimliklar & Sut',
-        description: "3.2% yog'li taza pasterizatsiyalangan natural sut.",
-        reactions: { '❤️': 8, '👍': 15, '🔥': 6 },
-        createdAt: new Date().toISOString()
-      });
-
-      // Seed News
-      await addDoc(collection(db, 'news'), {
-        title: "Yangi Meva va Sport Jihozlari Partiyasi Keldi!",
-        content: "Barcha filiallarimizga yangi uzilgan sarxil mevalar, oshxona jihozlari hamda sifatli sport koptoklari yetkazib berildi.",
-        imageUrl: "https://images.unsplash.com/photo-1610832958506-aa56368176cf?auto=format&fit=crop&w=800&q=80",
-        date: new Date().toISOString().split('T')[0],
-        createdAt: new Date().toISOString()
-      });
-    } catch (err) {
-      console.error("Error seeding initial data:", err);
-    }
-  };
-
   const unreadChatCount = chatSessions.filter((s) => s.unreadByAdmin).length;
 
   return (
@@ -372,30 +282,6 @@ export default function App() {
                   <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
                     Tizim ma'lumotlar bazasida hozircha mahsulotlar yo'q. Admin panel orqali yangi mahsulotlar va filiallar qo'shishingiz mumkin.
                   </p>
-
-                  <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
-                    <button
-                      onClick={() => {
-                        soundFx.playClick('click');
-                        if (isAdminLoggedIn) {
-                          setIsAdminPanelOpen(true);
-                        } else {
-                          setIsAdminLoginOpen(true);
-                        }
-                      }}
-                      className="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs font-bold shadow-md flex items-center gap-2"
-                    >
-                      <Lock className="w-4 h-4" />
-                      <span>Admin Panelga Kirib Mahsulot Qo'shish</span>
-                    </button>
-
-                    <button
-                      onClick={handleSeedInitialData}
-                      className="px-5 py-3 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-2xl text-xs font-bold transition-colors"
-                    >
-                      🌱 Namuna Mahsulotlar Bilan To'ldirish (Mevalar, Sport, Oshxona)
-                    </button>
-                  </div>
                 </div>
               ) : filteredProducts.length === 0 ? (
                 /* No match for current search/filter */
@@ -447,6 +333,7 @@ export default function App() {
               setActiveTab('products');
             }}
             t={t}
+            siteSettings={siteSettings}
           />
         )}
 

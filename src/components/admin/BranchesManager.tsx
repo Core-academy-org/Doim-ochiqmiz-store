@@ -1,18 +1,63 @@
-import React, { useState } from 'react';
-import { Branch } from '../../types';
-import { db, collection, addDoc, updateDoc, deleteDoc, doc } from '../../lib/firebase';
+import React, { useState, useEffect } from 'react';
+import { Branch, SiteSettings } from '../../types';
+import { db, collection, addDoc, updateDoc, deleteDoc, doc, setDoc } from '../../lib/firebase';
 import { soundFx } from '../../lib/sound';
-import { Plus, Edit2, Trash2, MapPin, Phone, Clock, Navigation, Map, X } from 'lucide-react';
+import { MAIN_STORE_GOOGLE_MAP_URL } from '../../lib/i18n';
+import { Plus, Edit2, Trash2, MapPin, Phone, Clock, Navigation, Map, X, Store, Save, CheckCircle2 } from 'lucide-react';
 
 interface BranchesManagerProps {
   branches: Branch[];
+  settings?: SiteSettings;
 }
 
-export const BranchesManager: React.FC<BranchesManagerProps> = ({ branches }) => {
+export const BranchesManager: React.FC<BranchesManagerProps> = ({ branches, settings }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
 
-  // Form State
+  // Main Store State
+  const [mainStoreName, setMainStoreName] = useState(settings?.mainStoreBranchName || "Bosh Filial (Markaziy Do'kon)");
+  const [mainStoreAddress, setMainStoreAddress] = useState(settings?.mainStoreAddress || "Toshkent sh., Chilonzor tumani, 9-mavze, 12-uy");
+  const [mainStoreMapUrl, setMainStoreMapUrl] = useState(settings?.mainStoreMapUrl || MAIN_STORE_GOOGLE_MAP_URL);
+  const [mainStorePhone, setMainStorePhone] = useState(settings?.contactPhone || "+998 90 123 45 67");
+  const [mainStoreWorkingHours, setMainStoreWorkingHours] = useState(settings?.workingHoursNotice || "Har kuni 08:00 - 22:00");
+  const [mainStoreSavedSuccess, setMainStoreSavedSuccess] = useState(false);
+
+  useEffect(() => {
+    if (settings) {
+      setMainStoreName(settings.mainStoreBranchName || "Bosh Filial (Markaziy Do'kon)");
+      setMainStoreAddress(settings.mainStoreAddress || "Toshkent sh., Chilonzor tumani, 9-mavze, 12-uy");
+      setMainStoreMapUrl(settings.mainStoreMapUrl || MAIN_STORE_GOOGLE_MAP_URL);
+      setMainStorePhone(settings.contactPhone || "+998 90 123 45 67");
+      setMainStoreWorkingHours(settings.workingHoursNotice || "Har kuni 08:00 - 22:00");
+    }
+  }, [settings]);
+
+  const handleSaveMainStore = async (e: React.FormEvent) => {
+    e.preventDefault();
+    soundFx.playClick('success');
+
+    const updatedSettings: SiteSettings = {
+      ...(settings || {
+        heroNotice: "Do'konga kelishdan oldin narx va mavjudlikni ko'ring",
+        headerTagline: "Filiallar real vaqt ombor tizimi"
+      }),
+      mainStoreBranchName: mainStoreName.trim(),
+      mainStoreAddress: mainStoreAddress.trim(),
+      mainStoreMapUrl: mainStoreMapUrl.trim(),
+      contactPhone: mainStorePhone.trim(),
+      workingHoursNotice: mainStoreWorkingHours.trim()
+    };
+
+    try {
+      await setDoc(doc(db, 'siteSettings', 'config'), updatedSettings);
+      setMainStoreSavedSuccess(true);
+      setTimeout(() => setMainStoreSavedSuccess(false), 3000);
+    } catch (err) {
+      console.error("Error saving main store settings:", err);
+    }
+  };
+
+  // Branch Form State
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
@@ -75,19 +120,123 @@ export const BranchesManager: React.FC<BranchesManagerProps> = ({ branches }) =>
     }
   };
 
-  const handleDelete = async (branchId: string) => {
-    if (!confirm("Haqiqatan ham ushbu filialni o'chirib tashlamoqchimisiz?")) return;
+  const [branchToDelete, setBranchToDelete] = useState<Branch | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handlePromptDelete = (b: Branch) => {
+    soundFx.playClick('click');
+    setBranchToDelete(b);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!branchToDelete) return;
+    setIsDeleting(true);
     soundFx.playClick('pop');
 
     try {
-      await deleteDoc(doc(db, 'branches', branchId));
+      await deleteDoc(doc(db, 'branches', branchToDelete.id));
+      setBranchToDelete(null);
     } catch (err) {
       console.error("Error deleting branch:", err);
+      alert("Filialni o'chirishda xatolik yuz berdi");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   return (
     <div className="space-y-6">
+      {/* Bosh Do'kon (Main Store) Sozlamalari Card */}
+      <form onSubmit={handleSaveMainStore} className="bg-gradient-to-br from-slate-900 via-slate-800 to-sky-950 p-6 rounded-3xl border border-sky-400/30 text-white shadow-xl space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-amber-400/20 text-amber-300 rounded-2xl border border-amber-400/30">
+              <Store className="w-6 h-6" />
+            </div>
+            <div>
+              <h4 className="font-black text-white text-base flex items-center gap-2">
+                Asosiy Do'kon (Bosh Filial) va Google Maps Sozlamalari
+              </h4>
+              <p className="text-xs text-slate-300">
+                Ushbu ma'lumotlar bosh sahifadagi interaktiv xaritada va barcha mijozlarga real vaqtda aks etadi
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-slate-950 hover:text-white rounded-xl text-xs font-black shadow-md transition-all flex items-center gap-2 shrink-0 cursor-pointer"
+          >
+            {mainStoreSavedSuccess ? (
+              <>
+                <CheckCircle2 className="w-4 h-4 text-slate-950" />
+                <span>Saqlandi!</span>
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4" />
+                <span>Saqlash</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-slate-800">
+          <div className="md:col-span-2 lg:col-span-3">
+            <label className="block text-xs font-bold text-slate-200 mb-1 flex items-center gap-1.5">
+              <Navigation className="w-4 h-4 text-emerald-400" /> Google Maps Link (Xarita Havolasi):
+            </label>
+            <input
+              type="url"
+              required
+              placeholder="https://maps.app.goo.gl/..."
+              value={mainStoreMapUrl}
+              onChange={(e) => setMainStoreMapUrl(e.target.value)}
+              className="w-full px-3.5 py-2.5 text-xs border border-white/20 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:outline-none font-mono text-emerald-300 bg-slate-950/80"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-200 mb-1 flex items-center gap-1.5">
+              <Store className="w-4 h-4 text-amber-400" /> Bosh Filial Nomi:
+            </label>
+            <input
+              type="text"
+              required
+              value={mainStoreName}
+              onChange={(e) => setMainStoreName(e.target.value)}
+              className="w-full px-3.5 py-2.5 text-xs border border-white/20 rounded-xl focus:ring-2 focus:ring-amber-400 focus:outline-none text-white bg-slate-950/80 font-bold"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-200 mb-1 flex items-center gap-1.5">
+              <MapPin className="w-4 h-4 text-rose-400" /> Bosh Filial Manzili:
+            </label>
+            <input
+              type="text"
+              required
+              value={mainStoreAddress}
+              onChange={(e) => setMainStoreAddress(e.target.value)}
+              className="w-full px-3.5 py-2.5 text-xs border border-white/20 rounded-xl focus:ring-2 focus:ring-rose-400 focus:outline-none text-white bg-slate-950/80"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-200 mb-1 flex items-center gap-1.5">
+              <Phone className="w-4 h-4 text-sky-400" /> Telefon Raqami:
+            </label>
+            <input
+              type="text"
+              required
+              value={mainStorePhone}
+              onChange={(e) => setMainStorePhone(e.target.value)}
+              className="w-full px-3.5 py-2.5 text-xs border border-white/20 rounded-xl focus:ring-2 focus:ring-sky-400 focus:outline-none text-white bg-slate-950/80"
+            />
+          </div>
+        </div>
+      </form>
+
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-sky-50/70 p-4 rounded-2xl border border-sky-100">
         <div>
           <h3 className="font-extrabold text-slate-800 text-lg">
@@ -281,8 +430,8 @@ export const BranchesManager: React.FC<BranchesManagerProps> = ({ branches }) =>
                     <Edit2 className="w-3.5 h-3.5" />
                   </button>
                   <button
-                    onClick={() => handleDelete(b.id)}
-                    className="p-1.5 bg-slate-100 hover:bg-rose-100 text-slate-700 hover:text-rose-700 rounded-lg"
+                    onClick={() => handlePromptDelete(b)}
+                    className="p-1.5 bg-slate-100 hover:bg-rose-100 text-slate-700 hover:text-rose-700 rounded-lg cursor-pointer transition-colors"
                     title="O'chirish"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -293,6 +442,45 @@ export const BranchesManager: React.FC<BranchesManagerProps> = ({ branches }) =>
           ))
         )}
       </div>
+
+      {/* Delete Confirmation Modal Overlay */}
+      {branchToDelete && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full border border-slate-100 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3 text-rose-600">
+              <div className="p-3 bg-rose-50 rounded-2xl">
+                <Trash2 className="w-6 h-6" />
+              </div>
+              <h4 className="font-extrabold text-slate-800 text-lg">
+                Filialni O'chirish
+              </h4>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Haqiqatan ham <strong className="text-slate-800">{branchToDelete.name}</strong> filialini o'chirib tashlamoqchimisiz? Ushbu amalni ortga qaytarib bo'lmaydi.
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => setBranchToDelete(null)}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer"
+              >
+                Bekor qilish
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={handleConfirmDelete}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md cursor-pointer"
+              >
+                {isDeleting ? "O'chirilmoqda..." : "Ha, O'chirilsin"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

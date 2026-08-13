@@ -1,5 +1,5 @@
 import React from 'react';
-import { Branch } from '../types';
+import { Branch, SiteSettings } from '../types';
 import { soundFx } from '../lib/sound';
 import { Translations, MAIN_STORE_GOOGLE_MAP_URL } from '../lib/i18n';
 import { MainStoreMapCard } from './MainStoreMapCard';
@@ -9,13 +9,21 @@ interface BranchListProps {
   branches: Branch[];
   onSelectBranchFilter: (branchId: string) => void;
   t: Translations;
+  siteSettings?: SiteSettings;
 }
 
-export const BranchList: React.FC<BranchListProps> = ({ branches, onSelectBranchFilter, t }) => {
+export const BranchList: React.FC<BranchListProps> = ({ branches, onSelectBranchFilter, t, siteSettings }) => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Featured Main Store Google Map Banner */}
-      <MainStoreMapCard t={t} />
+      <MainStoreMapCard 
+        t={t} 
+        phone={siteSettings?.contactPhone}
+        workingHours={siteSettings?.workingHoursNotice}
+        mapUrl={siteSettings?.mainStoreMapUrl}
+        branchName={siteSettings?.mainStoreBranchName}
+        address={siteSettings?.mainStoreAddress}
+      />
 
       {/* Branch List Section Header */}
       <div className="text-center max-w-2xl mx-auto space-y-2 pt-4">
