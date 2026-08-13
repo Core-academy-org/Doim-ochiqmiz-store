@@ -1,6 +1,8 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Allow public read/write to all collections to ensure immediate sync and usability for demo
+    // The admin panel relies on UI-side protection (hardcoded credentials) rather than Firestore auth rules.
     match /{document=**} {
       allow read, write: if true;
     }
